@@ -16,7 +16,9 @@ iPhone screen and follows the SwiftUI app's Today, Saved, photo-detail, and
 comments screens. It fetches NASA imagery and stores favorites and comments in
 your browser. If APOD is unavailable, it shows a photo from NASA's image
 archive. The NASA demo API key is rate-limited; configure your own key in
-`index.html` for regular use.
+`index.html` only for local testing. Do not commit a personal key or publish it
+in the browser app; use a backend proxy if you need a private key or higher
+request limits.
 
 ## Run the app
 
@@ -25,10 +27,11 @@ archive. The NASA demo API key is rate-limited; configure your own key in
 3. Build and run. The app uses NASA's `DEMO_KEY` by default, so no setup is
    needed to try it.
 
-For regular use, request a key at [api.nasa.gov](https://api.nasa.gov/) and
-change the `NASA_API_KEY` build setting for the app target. API keys embedded
-in a distributed client app can be extracted; use a backend proxy if the key
-must remain private.
+The app uses NASA's public `DEMO_KEY` by default. For local testing, you can
+request a key at [api.nasa.gov](https://api.nasa.gov/) and set the
+`NASA_API_KEY` build setting. Do not commit a personal key or ship it in the
+app: keys embedded in client apps can be extracted. Use a backend proxy for a
+private key or higher request limits.
 
 Favorites and comments are stored locally on the device. They are not shared
 with NASA or other users.
