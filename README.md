@@ -1,37 +1,53 @@
 # One Good Thing
 
-A native SwiftUI iOS app that brings NASA's Astronomy Picture of the Day (APOD)
-to your home screen, with a description, favorites, and personal comments.
+One Good Thing brings NASA's Astronomy Picture of the Day (APOD) to iPhone.
+Explore the daily image and its explanation, save favorites, and add personal
+comments.
 
-## See the browser preview
+## Browser preview
 
-Open `index.html` in a browser, or serve this folder locally:
+The browser preview mirrors the iOS app's Today, Saved, photo-detail, and
+comments screens in an iPhone-style layout. It uses NASA imagery and saves
+favorites and comments in the current browser.
+
+### Try the preview on GitHub Pages
+
+Repository maintainers can publish the preview for everyone:
+
+1. Push the repository to GitHub.
+2. Open **Settings > Pages** for the repository.
+3. Under **Build and deployment**, choose **Deploy from a branch**.
+4. Choose the default branch and the `/(root)` folder, then select **Save**.
+5. Open the published Pages URL shown in the Pages settings.
+
+### Run the preview locally
+
+Clone or download the repository, then open `index.html`. If your browser
+restricts API requests from local files, serve the repository root instead:
 
 ```powershell
 py -m http.server 8000
 ```
 
-Then visit `http://localhost:8000`. The browser preview is arranged like an
-iPhone screen and follows the SwiftUI app's Today, Saved, photo-detail, and
-comments screens. It fetches NASA imagery and stores favorites and comments in
-your browser. If APOD is unavailable, it shows a photo from NASA's image
-archive. The NASA demo API key is rate-limited; configure your own key in
-`index.html` only for local testing. Do not commit a personal key or publish it
-in the browser app; use a backend proxy if you need a private key or higher
-request limits.
+Visit `http://localhost:8000`.
 
-## Run the app
+## Run the iOS app
 
-1. Open `OneGoodThing.xcodeproj` in Xcode 15 or later.
+The native app requires a Mac with Xcode 15 or later:
+
+1. Open `OneGoodThing.xcodeproj` in Xcode.
 2. Select the **OneGoodThing** scheme and an iOS 17+ simulator or device.
-3. Build and run. The app uses NASA's `DEMO_KEY` by default, so no setup is
-   needed to try it.
+3. Build and run.
 
-The app uses NASA's public `DEMO_KEY` by default. For local testing, you can
-request a key at [api.nasa.gov](https://api.nasa.gov/) and set the
-`NASA_API_KEY` build setting. Do not commit a personal key or ship it in the
-app: keys embedded in client apps can be extracted. Use a backend proxy for a
-private key or higher request limits.
+## NASA API and data
 
-Favorites and comments are stored locally on the device. They are not shared
-with NASA or other users.
+Both versions use NASA's public `DEMO_KEY` by default. It is shared and
+rate-limited, so APOD requests may be temporarily unavailable. The browser
+preview falls back to NASA's public image archive when it cannot load APOD.
+
+For a public deployment with higher request limits, use a backend proxy for a
+NASA API key. Do not put a personal key in this repository, the browser code,
+or a distributed app; client-side keys can be extracted.
+
+Favorites and comments are stored locally in the user's browser or device.
+They are not synced between devices or shared with other users.
