@@ -1,0 +1,708 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090b14">
+  <meta name="description" content="One small wonder from the universe, every day.">
+  <title>One Good Thing — A little wonder, every day</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #090b14;
+      color: #f7f5f2;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+      --muted: #9c9eac;
+      --line: rgba(255,255,255,.1);
+      --orange: #ff9a54;
+      --panel: rgba(255,255,255,.045);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(ellipse at 75% 4%, rgba(76,76,151,.22), transparent 42rem),
+        radial-gradient(ellipse at 0% 40%, rgba(112,58,87,.11), transparent 38rem),
+        #090b14;
+    }
+    button, textarea { font: inherit; }
+    button { color: inherit; }
+    .shell { max-width: 1240px; margin: auto; padding: 0 42px 110px; }
+    .topbar {
+      height: 82px; display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; font-size: 15px; font-weight: 750; letter-spacing: -.3px; }
+    .brand-mark {
+      width: 35px; height: 35px; display: grid; place-items: center; border-radius: 12px;
+      color: #1b1010; background: linear-gradient(145deg, #ffc08b, #ff8650);
+      box-shadow: 0 5px 24px rgba(255,137,79,.24);
+    }
+    .brand-mark svg { width: 19px; }
+    .nav { display: flex; gap: 7px; padding: 5px; background: rgba(255,255,255,.045); border: 1px solid var(--line); border-radius: 999px; }
+    .nav button {
+      border: 0; border-radius: 999px; padding: 9px 17px; color: var(--muted);
+      background: transparent; cursor: pointer; font-size: 13px; font-weight: 600; transition: .2s ease;
+    }
+    .nav button.active { color: #fff; background: rgba(255,255,255,.12); }
+    .nav button:hover:not(.active) { color: white; }
+    .eyebrow { color: var(--orange); font-size: 10px; font-weight: 750; letter-spacing: 2.5px; text-transform: uppercase; }
+    .intro { padding: 52px 0 31px; }
+    h1 { margin: 11px 0 8px; font-size: clamp(35px, 5vw, 58px); letter-spacing: -2.8px; line-height: 1.06; font-weight: 650; }
+    .subtitle { margin: 0; color: var(--muted); font-size: 16px; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1.48fr) minmax(280px, .75fr); gap: 30px; align-items: start; }
+    .photo-card {
+      position: relative; min-height: 485px; overflow: hidden; border-radius: 21px;
+      background: linear-gradient(145deg, #262854, #141727 55%, #302238);
+      border: 1px solid rgba(255,255,255,.11); box-shadow: 0 24px 75px rgba(0,0,0,.35);
+    }
+    .photo-card::before {
+      content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+      background: linear-gradient(180deg, rgba(7,8,18,.05) 35%, rgba(7,8,18,.8) 100%);
+    }
+    .photo-card img { width: 100%; height: 485px; display: block; object-fit: cover; }
+    .photo-placeholder { position: absolute; inset: 0; overflow: hidden; }
+    .photo-placeholder::before, .photo-placeholder::after {
+      content: ""; position: absolute; inset: 0;
+      background-image: radial-gradient(1px 1px at 12% 20%, #fff 98%, transparent), radial-gradient(1px 1px at 34% 72%, #fff 98%, transparent), radial-gradient(1.5px 1.5px at 79% 28%, #fff 98%, transparent), radial-gradient(1px 1px at 70% 83%, #fff 98%, transparent), radial-gradient(1px 1px at 22% 55%, #fff 98%, transparent), radial-gradient(1px 1px at 91% 61%, #fff 98%, transparent), radial-gradient(1px 1px at 52% 17%, #fff 98%, transparent), radial-gradient(1px 1px at 43% 92%, #fff 98%, transparent);
+      background-size: 271px 231px; opacity: .65;
+    }
+    .photo-placeholder::after { transform: translate(92px, 43px) scale(1.18); opacity: .3; }
+    .image-caption { position: absolute; z-index: 2; left: 22px; bottom: 20px; color: rgba(255,255,255,.76); font-size: 11px; }
+    .card-label {
+      position: absolute; z-index: 2; left: 18px; top: 18px; padding: 8px 11px;
+      border: 1px solid rgba(255,255,255,.14); border-radius: 999px; color: white;
+      background: rgba(10,12,24,.4); backdrop-filter: blur(12px); font-size: 10px; letter-spacing: 1.1px; font-weight: 700;
+    }
+    .detail { padding: 13px 0 0 3px; }
+    .date-line { display: flex; align-items: center; gap: 9px; color: var(--muted); font-size: 12px; }
+    .date-line svg { width: 15px; color: var(--orange); }
+    h2 { margin: 16px 0 12px; font-size: clamp(26px, 3vw, 37px); letter-spacing: -1.3px; line-height: 1.13; font-weight: 650; }
+    .description { color: #b6b7c2; font-size: 14px; line-height: 1.85; }
+    .credit { margin: 20px 0 0; color: #858796; font-size: 11px; }
+    .actions { display: flex; gap: 10px; margin-top: 25px; }
+    .action {
+      min-height: 42px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 0 14px; border-radius: 12px; border: 1px solid var(--line);
+      background: rgba(255,255,255,.055); cursor: pointer; color: #e8e8ed; font-size: 12px; font-weight: 650;
+      transition: transform .18s, background .18s, border-color .18s;
+    }
+    .action:hover { transform: translateY(-1px); background: rgba(255,255,255,.1); }
+    .action svg { width: 16px; height: 16px; }
+    .action.primary { color: #171018; background: #ffa46b; border-color: #ffa46b; }
+    .action.primary:hover { background: #ffb47f; }
+    .action.saved { color: #ff936f; border-color: rgba(255,147,111,.35); background: rgba(255,147,111,.1); }
+    .loading, .error {
+      display: flex; min-height: 485px; align-items: center; justify-content: center; flex-direction: column;
+      gap: 12px; color: var(--muted); text-align: center;
+    }
+    .spinner { width: 26px; height: 26px; border: 2px solid rgba(255,255,255,.18); border-top-color: var(--orange); border-radius: 50%; animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .saved-view { padding-top: 38px; }
+    .saved-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(225px, 1fr)); gap: 17px; }
+    .saved-card { overflow: hidden; border: 1px solid var(--line); border-radius: 16px; background: var(--panel); }
+    .saved-image { height: 155px; position: relative; overflow: hidden; background: linear-gradient(145deg, #262854, #141727 55%, #302238); }
+    .saved-image img { position: absolute; width: 100%; height: 100%; object-fit: cover; }
+    .saved-copy { padding: 15px; }
+    .saved-copy h3 { margin: 0 0 7px; font-size: 14px; line-height: 1.4; }
+    .saved-copy p { margin: 0; color: var(--muted); font-size: 11px; }
+    .empty { grid-column: 1 / -1; padding: 78px 15px; text-align: center; border: 1px dashed rgba(255,255,255,.16); border-radius: 18px; color: var(--muted); }
+    .empty-icon { margin: 0 auto 15px; width: 44px; height: 44px; display: grid; place-items: center; color: var(--orange); background: rgba(255,154,84,.1); border-radius: 14px; }
+    .empty h2 { margin: 0 0 8px; font-size: 20px; letter-spacing: -.4px; color: white; }
+    .empty p { margin: 0; font-size: 13px; }
+    .modal-backdrop { position: fixed; inset: 0; z-index: 5; display: grid; place-items: center; padding: 18px; background: rgba(2,3,10,.75); backdrop-filter: blur(8px); }
+    .modal { width: min(100%, 490px); max-height: min(650px, 88vh); overflow: auto; padding: 22px; border: 1px solid var(--line); border-radius: 20px; background: #131521; box-shadow: 0 30px 100px rgba(0,0,0,.55); }
+    .modal-head { display: flex; align-items: start; justify-content: space-between; gap: 10px; }
+    .modal-head h2 { margin: 0; font-size: 21px; letter-spacing: -.5px; }
+    .modal-head p { margin: 6px 0 0; color: var(--muted); font-size: 12px; }
+    .close { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 10px; background: transparent; cursor: pointer; }
+    .comment-list { display: grid; gap: 11px; padding: 20px 0; }
+    .comment { padding: 12px; border: 1px solid var(--line); border-radius: 12px; color: #e4e3e9; font-size: 13px; line-height: 1.55; overflow-wrap: anywhere; }
+    .comment time { display: block; margin-top: 7px; color: var(--muted); font-size: 10px; }
+    .comment-empty { padding: 24px 8px; color: var(--muted); text-align: center; font-size: 13px; }
+    .composer { display: grid; gap: 9px; padding-top: 15px; border-top: 1px solid var(--line); }
+    .composer textarea { width: 100%; min-height: 78px; resize: vertical; padding: 11px; border: 1px solid var(--line); border-radius: 11px; outline: none; background: rgba(255,255,255,.045); color: white; font-size: 13px; }
+    .composer textarea:focus { border-color: rgba(255,154,84,.65); }
+    .composer .action { justify-self: end; }
+    .toast { position: fixed; z-index: 8; bottom: 25px; left: 50%; transform: translateX(-50%); padding: 11px 16px; border: 1px solid var(--line); border-radius: 12px; background: #202231; color: white; font-size: 12px; box-shadow: 0 8px 32px rgba(0,0,0,.32); }
+    [hidden] { display: none !important; }
+    @media (max-width: 760px) {
+      .shell { padding: 0 20px 95px; }
+      .topbar { height: 72px; }
+      .brand { font-size: 13px; gap: 9px; }
+      .brand-mark { width: 32px; height: 32px; }
+      .nav button { padding: 8px 12px; font-size: 12px; }
+      .intro { padding-top: 39px; }
+      .layout { grid-template-columns: 1fr; gap: 22px; }
+      .photo-card, .photo-card img, .loading, .error { min-height: 340px; height: 340px; }
+      .photo-card img { height: 340px; }
+      .detail { padding: 0 2px; }
+      h2 { margin-top: 12px; }
+    }
+    @media (max-width: 420px) {
+      .shell { padding-right: 15px; padding-left: 15px; }
+      .brand span:last-child { max-width: 105px; }
+      .nav button { padding: 8px 10px; }
+      .photo-card, .photo-card img, .loading, .error { min-height: 290px; height: 290px; }
+      .photo-card img { height: 290px; }
+    }
+    body { min-height: 100dvh; display: grid; place-items: center; padding: 14px; background: radial-gradient(ellipse at 50% 42%, #202236 0%, #11121d 55%, #08090f 100%); }
+    .shell { width: min(402px, calc(100vw - 28px)); height: min(852px, calc(100dvh - 28px)); min-height: 560px; padding: 9px; overflow: hidden; border: 1px solid #44444d; border-radius: 54px; background: #050507; box-shadow: 0 30px 100px rgba(0,0,0,.7), inset 0 0 0 2px #1a1a1d; }
+    .screen { position: relative; display: flex; width: 100%; height: 100%; min-height: 0; flex-direction: column; overflow: hidden; border-radius: 45px; background: #090b17; }
+    .status-bar { position: relative; z-index: 3; display: flex; height: 42px; min-height: 42px; align-items: center; justify-content: space-between; padding: 0 27px 0 29px; color: white; font-size: 12px; font-weight: 700; }
+    .dynamic-island { position: absolute; top: 8px; left: 50%; width: 94px; height: 25px; transform: translateX(-50%); border-radius: 20px; background: #020204; }
+    .status-icons { display: flex; align-items: center; gap: 5px; }
+    .status-icons svg { display: block; width: 14px; height: 14px; }
+    .status-icons .battery { width: 20px; }
+    .app-content { flex: 1; min-height: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+    .app-content::-webkit-scrollbar { display: none; }
+    .topbar { display: none; }
+    .intro { padding: 13px 16px 0; }
+    .eyebrow { font-size: 11px; letter-spacing: 2px; }
+    .intro h1 { margin: 4px 0 0; font-size: 18px; font-weight: 500; letter-spacing: -.3px; line-height: 1.35; color: rgba(255,255,255,.82); }
+    .subtitle { display: none; }
+    .layout { display: flex; flex-direction: column; gap: 0; padding-bottom: 24px; }
+    .photo-card { display: block; width: calc(100% - 32px); height: 340px; min-height: 340px; margin: 24px 16px 0; padding: 0; appearance: none; text-align: left; cursor: pointer; border-radius: 22px; background: linear-gradient(140deg, #24284d, #121423 65%, #171521); border: 1px solid rgba(255,255,255,.1); box-shadow: none; }
+    .photo-card img { width: 100%; height: 100%; object-fit: cover; }
+    .photo-card::before { background: linear-gradient(180deg, transparent 52%, rgba(0,0,0,.76) 100%); }
+    .photo-placeholder { background: linear-gradient(135deg, rgba(47,54,103,.85), #090b17 78%); }
+    .photo-placeholder::before, .photo-placeholder::after { display: none; }
+    .card-label { display: none; }
+    .image-caption { right: 18px; bottom: 17px; left: 18px; display: grid; gap: 5px; color: rgba(255,255,255,.8); font-size: 12px; }
+    .image-caption strong { color: white; font-size: 17px; line-height: 1.25; }
+    .detail { width: 100%; padding: 24px 16px 0; }
+    .detail .eyebrow { margin-bottom: 8px; }
+    .detail h2 { margin: 0 0 8px; font-size: 22px; font-weight: 700; letter-spacing: -.35px; line-height: 1.25; }
+    .description { display: -webkit-box; overflow: hidden; margin: 0; color: rgba(255,255,255,.62); font-size: 15px; line-height: 1.45; -webkit-box-orient: vertical; -webkit-line-clamp: 4; }
+    .credit, .date-line, .actions, .image-caption .archive-note { display: none; }
+    .discover-link { margin-top: 12px; padding: 0; border: 0; color: #ff9a54; background: transparent; font-size: 14px; font-weight: 650; cursor: pointer; }
+    .loading, .error { min-height: 360px; height: 360px; }
+    .saved-view { padding: 0 16px 24px; }
+    .saved-view .intro { padding: 26px 0 18px; }
+    .saved-view .eyebrow, .saved-view .subtitle { display: none; }
+    .saved-view .intro h1 { margin: 0; color: white; font-size: 34px; font-weight: 700; letter-spacing: -.8px; }
+    .saved-grid { display: grid; grid-template-columns: 1fr; gap: 0; }
+    .saved-card { display: flex; align-items: center; gap: 14px; padding: 10px 0; overflow: visible; border: 0; border-bottom: 1px solid rgba(255,255,255,.1); border-radius: 0; background: transparent; cursor: pointer; }
+    .saved-image { width: 76px; height: 76px; min-width: 76px; border-radius: 10px; background: #222744; }
+    .saved-copy { padding: 0; }
+    .saved-copy h3 { margin-bottom: 5px; font-size: 17px; font-weight: 600; }
+    .saved-copy p { font-size: 13px; }
+    .saved-copy .comment-count { display: block; margin-top: 4px; }
+    .empty { padding: 110px 16px; border: 0; }
+    .empty-icon { color: var(--muted); background: transparent; font-size: 31px; }
+    .empty h2 { font-size: 18px; }
+    .empty p { font-size: 14px; line-height: 1.5; }
+    .tab-bar { display: flex; height: 73px; min-height: 73px; align-items: stretch; justify-content: center; padding: 7px 30px 10px; border-top: 1px solid rgba(255,255,255,.08); background: rgba(12,14,26,.97); }
+    .tab-bar button { display: flex; min-width: 88px; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border: 0; color: #858796; background: transparent; font-size: 10px; cursor: pointer; }
+    .tab-bar button.active { color: #ff9a54; }
+    .tab-bar svg { width: 21px; height: 21px; }
+    .detail-screen { padding-bottom: 24px; }
+    .native-nav { display: flex; height: 45px; align-items: center; gap: 10px; padding: 0 16px 5px; }
+    .native-nav button { display: inline-flex; align-items: center; gap: 5px; padding: 0; border: 0; color: #ff9a54; background: transparent; font-size: 16px; cursor: pointer; }
+    .native-nav button svg { width: 19px; height: 19px; }
+    .native-nav span { font-size: 17px; font-weight: 600; color: white; }
+    .detail-content { padding: 0 16px; }
+    .detail-hero { display: block; width: 100%; max-height: 350px; object-fit: contain; border-radius: 18px; background: linear-gradient(140deg,#25294e,#090b17); }
+    .detail-video { display: grid; height: 230px; place-items: center; border-radius: 18px; color: white; background: linear-gradient(140deg,#25294e,#090b17); }
+    .detail-date { margin: 23px 0 10px; color: #ff9a54; font-size: 15px; font-weight: 550; }
+    .detail-title { margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -.7px; line-height: 1.12; }
+    .detail-credit { margin: 11px 0 0; color: var(--muted); font-size: 12px; }
+    .detail-explanation { margin: 20px 0 23px; color: rgba(255,255,255,.87); font-size: 16px; line-height: 1.5; white-space: pre-line; }
+    .detail-actions { display: flex; gap: 12px; }
+    .detail-actions button { min-height: 42px; flex: 1; }
+    .detail-actions .action.primary { color: #16120f; background: #ff9a54; }
+    .modal-backdrop { position: absolute; z-index: 5; inset: 0; display: flex; align-items: flex-end; justify-content: center; padding: 0; background: rgba(0,0,0,.55); backdrop-filter: blur(2px); }
+    .modal { width: 100%; max-height: 88%; padding: 20px 16px 16px; border: 0; border-top: 1px solid rgba(255,255,255,.14); border-radius: 24px 24px 0 0; background: #151724; box-shadow: 0 -12px 40px rgba(0,0,0,.3); }
+    .modal-head { align-items: center; }
+    .modal-head h2 { font-size: 17px; letter-spacing: 0; }
+    .modal-head p { max-width: 290px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .close { width: auto; padding: 0 3px; border: 0; color: #ff9a54; font-size: 14px; }
+    .comment-list { min-height: 110px; max-height: 40vh; overflow-y: auto; }
+    .comment { border: 0; border-bottom: 1px solid var(--line); border-radius: 0; }
+    .composer { grid-template-columns: 1fr auto; align-items: end; gap: 10px; padding-top: 12px; }
+    .composer textarea { min-height: 42px; max-height: 110px; resize: none; padding: 11px 12px; border: 1px solid rgba(255,255,255,.13); border-radius: 12px; background: rgba(255,255,255,.07); }
+    .composer .action { min-height: 42px; padding: 0 12px; border: 0; color: #ff9a54; background: transparent; }
+    .composer .action:hover { background: rgba(255,154,84,.1); }
+    .composer .action:disabled { opacity: .45; cursor: default; }
+    .toast { position: absolute; bottom: 80px; }
+    .device-hint { position: fixed; bottom: max(18px, calc((100vh - 852px) / 2)); left: calc(50% + 230px); color: #858796; font-size: 12px; white-space: nowrap; }
+    @media (max-width: 460px) {
+      body { padding: 0; background: #090b17; }
+      .shell { width: 100%; height: 100dvh; min-height: 0; padding: 0; border: 0; border-radius: 0; box-shadow: none; }
+      .screen { border-radius: 0; }
+      .device-hint { display: none; }
+      .modal-backdrop { position: fixed; }
+    }
+    @media (max-width: 420px) {
+      .photo-card { height: min(340px, 42vh); min-height: 245px; }
+      .loading, .error { min-height: 300px; height: 300px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="screen">
+      <div class="status-bar" aria-hidden="true">
+        <span>9:41</span><span class="dynamic-island"></span>
+        <span class="status-icons">
+          <svg viewBox="0 0 20 16" fill="currentColor"><path d="M1 5.2a13.6 13.6 0 0 1 18 0l-1.5 1.7a11.3 11.3 0 0 0-15 0L1 5.2Zm3 3.2a9 9 0 0 1 12 0l-1.6 1.8a6.6 6.6 0 0 0-8.8 0L4 8.4Zm3.2 3.1a4.2 4.2 0 0 1 5.6 0L10 15l-2.8-.3Z"/></svg>
+          <svg viewBox="0 0 16 16" fill="currentColor"><path d="M1 12.5h2v2H1zm3.1-2.7h2v4.7h-2zm3.3-2.5h2v7.2h-2zm3.3-2.6h2v9.8h-2z"/></svg>
+          <svg class="battery" viewBox="0 0 24 14"><rect x="1" y="2" width="19" height="10" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M22 5v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="3" y="4" width="14" height="6" rx="1.5" fill="currentColor"/></svg>
+        </span>
+      </div>
+      <div id="app-content" class="app-content">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5c1.4 4.3 2.2 5.1 6.5 6.5-4.3 1.4-5.1 2.2-6.5 6.5-1.4-4.3-2.2-5.1-6.5-6.5 4.3-1.4 5.1-2.2 6.5-6.5Z"/><path d="m19.5 15 .8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2ZM4 2l.7 1.8L6.5 4.5l-1.8.7L4 7l-.7-1.8-1.8-.7 1.8-.7L4 2Z"/></svg>
+        </div>
+        <span>One Good Thing</span>
+      </div>
+      <nav class="nav" aria-label="Main navigation">
+        <button id="today-tab-old" class="active" type="button" aria-current="page">Today</button>
+        <button id="saved-tab-old" type="button">Saved <span id="saved-count-old"></span></button>
+      </nav>
+    </header>
+
+    <main>
+      <section id="today-view">
+        <div class="intro">
+          <div class="eyebrow">ONE GOOD THING</div>
+          <h1>A little wonder, every day.</h1>
+        </div>
+        <div id="loading" class="loading"><span class="spinner" aria-hidden="true"></span><span>Finding today's good thing…</span></div>
+        <div id="error" class="error" hidden>
+          <div class="eyebrow">A little pause in the universe</div>
+          <p id="error-message">We couldn't reach NASA right now.</p>
+          <button id="retry" class="action primary" type="button">Try again</button>
+        </div>
+        <div id="photo-layout" class="layout" hidden>
+          <button id="open-detail" class="photo-card" type="button" aria-label="Open today's astronomy photo">
+            <div id="photo-placeholder" class="photo-placeholder" aria-hidden="true"></div>
+            <img id="photo-image" alt="" hidden>
+            <div class="image-caption"><time id="photo-date"></time><strong id="photo-card-title"></strong></div>
+          </button>
+          <div class="detail">
+            <div class="eyebrow">TODAY'S UNIVERSE</div>
+            <h2 id="photo-title"></h2>
+            <p id="photo-description" class="description"></p>
+            <button id="discover-link" class="discover-link" type="button">Discover the story</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="detail-view" class="detail-screen" hidden>
+        <div class="native-nav">
+          <button id="back-button" type="button" aria-label="Back">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            <span>Back</span>
+          </button>
+        </div>
+        <div class="detail-content">
+          <img id="detail-image" class="detail-hero" alt="">
+          <div id="detail-video" class="detail-video" hidden>▶ &nbsp; Watch today's astronomy video</div>
+          <p id="detail-date" class="detail-date"></p>
+          <h1 id="detail-title" class="detail-title"></h1>
+          <p id="detail-credit" class="detail-credit" hidden></p>
+          <p id="detail-explanation" class="detail-explanation"></p>
+          <div class="detail-actions">
+            <button id="detail-favorite-button" class="action primary" type="button" aria-pressed="false"></button>
+            <button id="detail-comments-button" class="action" type="button"></button>
+          </div>
+        </div>
+      </section>
+
+      <section id="saved-view" class="saved-view" hidden>
+        <div class="intro">
+          <h1>Saved wonders</h1>
+        </div>
+        <div id="saved-grid" class="saved-grid"></div>
+      </section>
+    </main>
+      </div>
+      <nav class="tab-bar" aria-label="Main navigation">
+        <button id="today-tab" class="active" type="button" aria-current="page">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5c1.3 4.2 2.3 5.2 6.5 6.5-4.2 1.3-5.2 2.3-6.5 6.5-1.3-4.2-2.3-5.2-6.5-6.5 4.2-1.3 5.2-2.3 6.5-6.5Z"/><path d="m19 15 .7 2.3L22 18l-2.3.7L19 21l-.7-2.3L16 18l2.3-.7L19 15Z"/></svg>
+          <span>Today</span>
+        </button>
+        <button id="saved-tab" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 8.7c0 4.4-8.8 10-8.8 10s-8.8-5.6-8.8-10A4.7 4.7 0 0 1 12 6.2a4.7 4.7 0 0 1 8.8 2.5Z"/></svg>
+          <span>Saved<span id="saved-count"></span></span>
+        </button>
+      </nav>
+      <div id="comments-modal" class="modal-backdrop" hidden>
+        <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+          <div class="modal-head">
+            <div><h2 id="modal-title">Comments</h2><p id="modal-subtitle"></p></div>
+            <button id="close-modal" class="close" type="button" aria-label="Close comments">Done</button>
+          </div>
+          <div id="comment-list" class="comment-list"></div>
+          <form id="comment-form" class="composer">
+            <textarea id="comment-input" maxlength="1000" placeholder="Share a thought…" aria-label="Your comment" required></textarea>
+            <button id="comment-post" class="action primary" type="submit" disabled>Post</button>
+          </form>
+        </section>
+      </div>
+      <div id="toast" class="toast" role="status" hidden></div>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const API_KEY = "DEMO_KEY";
+      const STORAGE_KEY = "one-good-thing.browser-library.v1";
+      const $ = (id) => document.getElementById(id);
+      const state = { photo: null, detailPhoto: null, photos: {}, view: "today", toastTimer: null };
+      const icon = {
+        heart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 8.7c0 4.4-8.8 10-8.8 10s-8.8-5.6-8.8-10A4.7 4.7 0 0 1 12 6.2a4.7 4.7 0 0 1 8.8 2.5Z"/></svg>',
+        heartFill: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.8 8.7c0 4.4-8.8 10-8.8 10s-8.8-5.6-8.8-10A4.7 4.7 0 0 1 12 6.2a4.7 4.7 0 0 1 8.8 2.5Z"/></svg>',
+        comment: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z"/></svg>'
+      };
+
+      function readLibrary() {
+        try {
+          const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+          state.photos = parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+        } catch {
+          state.photos = {};
+          showToast("Saved items could not be read in this browser.");
+        }
+      }
+
+      function saveLibrary() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state.photos));
+          updateSavedCount();
+          return true;
+        } catch {
+          showToast("Couldn't save. Check your browser's storage settings.");
+          return false;
+        }
+      }
+
+      function entryFor(photo) {
+        return state.photos[photo.date] || { photo, favorite: false, comments: [] };
+      }
+
+      function savePhotoRecord(photo, entry) {
+        state.photos[photo.date] = { photo, favorite: Boolean(entry.favorite), comments: entry.comments || [] };
+        return saveLibrary();
+      }
+
+      function updateSavedCount() {
+        const count = Object.values(state.photos).filter((entry) => entry.favorite).length;
+        $("saved-count").textContent = count ? ` · ${count}` : "";
+      }
+
+      function formatDate(dateString) {
+        const date = new Date(`${dateString}T12:00:00`);
+        return new Intl.DateTimeFormat(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric" }).format(date);
+      }
+
+      function setError(message) {
+        $("loading").hidden = true;
+        $("photo-layout").hidden = true;
+        $("error").hidden = false;
+        $("error-message").textContent = message;
+      }
+
+      function renderPhoto(photo) {
+        state.photo = photo;
+        state.detailPhoto = null;
+        $("loading").hidden = true;
+        $("error").hidden = true;
+        $("photo-layout").hidden = false;
+        $("photo-title").textContent = photo.title;
+        $("photo-card-title").textContent = photo.title;
+        $("photo-date").textContent = photo.date;
+        $("photo-date").dateTime = photo.date;
+        $("photo-description").textContent = photo.explanation;
+
+        const imageURL = photo.media_type === "video" ? photo.thumbnail_url : (photo.hdurl || photo.url);
+        const image = $("photo-image");
+        const placeholder = $("photo-placeholder");
+        image.hidden = true;
+        placeholder.hidden = false;
+        image.onerror = () => {
+          image.hidden = true;
+          placeholder.hidden = false;
+        };
+        image.onload = () => {
+          image.hidden = false;
+          placeholder.hidden = true;
+        };
+        if (imageURL && photo.media_type !== "other") {
+          image.src = imageURL;
+          image.alt = photo.title;
+        }
+        updateActions();
+        savePhotoRecord(photo, entryFor(photo));
+      }
+
+      function openDetail(photo) {
+        state.detailPhoto = photo;
+        $("today-view").hidden = true;
+        $("saved-view").hidden = true;
+        $("detail-view").hidden = false;
+        $("app-content").scrollTop = 0;
+
+        const image = $("detail-image");
+        const video = $("detail-video");
+        const imageURL = photo.media_type === "video" ? photo.thumbnail_url : (photo.hdurl || photo.url);
+        video.hidden = photo.media_type === "image";
+        image.hidden = photo.media_type !== "image";
+        if (photo.media_type === "image") {
+          image.src = imageURL;
+          image.alt = photo.title;
+          image.onerror = () => { image.hidden = true; };
+        } else {
+          video.onclick = () => window.open(photo.url, "_blank", "noopener");
+        }
+
+        $("detail-date").textContent = photo.date;
+        $("detail-title").textContent = photo.title;
+        $("detail-explanation").textContent = photo.explanation;
+        const credit = photo.copyright ? `Image: ${photo.copyright.trim()}` : "";
+        $("detail-credit").textContent = credit;
+        $("detail-credit").hidden = !credit;
+        updateActions();
+      }
+
+      function returnToTab() {
+        $("detail-view").hidden = true;
+        selectView(state.view);
+      }
+
+      async function loadArchiveFeature() {
+        const url = new URL("https://images-api.nasa.gov/search");
+        url.search = new URLSearchParams({ q: "nebula", media_type: "image", page_size: "5" });
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("NASA's image archive is unavailable.");
+        const result = await response.json();
+        const item = result.collection?.items?.find((candidate) =>
+          candidate.data?.[0]?.title
+          && candidate.data[0].title !== "NASA Science"
+          && candidate.links?.some((link) => link.render === "image")
+        );
+        if (!item) throw new Error("NASA's image archive did not return a photo.");
+        const metadata = item.data[0];
+        const imageURL = item.links.find((link) => link.render === "image").href;
+        return {
+          date: metadata.date_created?.slice(0, 10) || new Date().toISOString().slice(0, 10),
+          title: metadata.title,
+          explanation: metadata.description_508 || metadata.description || "A glimpse into our universe, from NASA's image archive.",
+          url: imageURL,
+          hdurl: imageURL,
+          media_type: "image",
+          copyright: metadata.secondary_creator || metadata.center || "NASA",
+          source: "archive"
+        };
+      }
+
+      async function loadToday() {
+        $("error").hidden = true;
+        $("photo-layout").hidden = true;
+        $("loading").hidden = false;
+        try {
+          const date = new Intl.DateTimeFormat("en-CA", {
+            year: "numeric", month: "2-digit", day: "2-digit", timeZone: "UTC"
+          }).format(new Date());
+          const url = new URL("https://api.nasa.gov/planetary/apod");
+          url.search = new URLSearchParams({ api_key: API_KEY, date, thumbs: "true" });
+          const response = await fetch(url);
+          let photo = null;
+          if (response.ok) {
+            const result = await response.json();
+            if (result.title && result.title !== "NASA Science" && result.date && result.explanation && result.url
+              && !result.url.includes("/nasa-logo")) {
+              photo = result;
+            }
+          }
+          if (!photo) photo = await loadArchiveFeature();
+          renderPhoto(photo);
+        } catch (error) {
+          setError(error instanceof TypeError
+            ? "We couldn't connect to NASA. Check your internet connection and try again."
+            : `${error.message || "We couldn't load today's photo."} Try again in a little while.`);
+        }
+      }
+
+      function updateActions() {
+        const photo = state.detailPhoto || state.photo;
+        if (!photo) return;
+        const entry = entryFor(photo);
+        const favorite = $("detail-favorite-button");
+        favorite.classList.toggle("saved", entry.favorite);
+        favorite.setAttribute("aria-pressed", String(entry.favorite));
+        favorite.innerHTML = `<span>${icon.heartFill}</span><span>${entry.favorite ? "Saved" : "Favorite"}</span>`;
+        $("detail-comments-button").innerHTML = `${icon.comment}<span>Comments</span>`;
+      }
+
+      function showToast(message) {
+        const toast = $("toast");
+        toast.textContent = message;
+        toast.hidden = false;
+        clearTimeout(state.toastTimer);
+        state.toastTimer = setTimeout(() => { toast.hidden = true; }, 2500);
+      }
+
+      function selectView(view) {
+        state.view = view;
+        const today = view === "today";
+        $("detail-view").hidden = true;
+        $("today-view").hidden = !today;
+        $("saved-view").hidden = today;
+        $("today-tab").classList.toggle("active", today);
+        $("saved-tab").classList.toggle("active", !today);
+        if (today) {
+          $("today-tab").setAttribute("aria-current", "page");
+          $("saved-tab").removeAttribute("aria-current");
+        } else {
+          $("saved-tab").setAttribute("aria-current", "page");
+          $("today-tab").removeAttribute("aria-current");
+          renderSaved();
+        }
+      }
+
+      function renderSaved() {
+        updateSavedCount();
+        const grid = $("saved-grid");
+        grid.replaceChildren();
+        const entries = Object.values(state.photos).filter((entry) => entry.favorite)
+          .sort((a, b) => b.photo.date.localeCompare(a.photo.date));
+        if (!entries.length) {
+          const empty = document.createElement("div");
+          empty.className = "empty";
+          empty.innerHTML = '<div class="empty-icon">♡</div><h2>No saved wonders yet</h2><p>Tap the heart on a daily photo to keep it here.</p>';
+          grid.append(empty);
+          return;
+        }
+        for (const entry of entries) {
+          const card = document.createElement("article");
+          card.className = "saved-card";
+          card.tabIndex = 0;
+          card.setAttribute("role", "button");
+          card.setAttribute("aria-label", `Open ${entry.photo.title}`);
+          card.addEventListener("click", () => openDetail(entry.photo));
+          card.addEventListener("keydown", (event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              openDetail(entry.photo);
+            }
+          });
+          const imageFrame = document.createElement("div");
+          imageFrame.className = "saved-image";
+          imageFrame.innerHTML = '<div class="photo-placeholder" aria-hidden="true"></div>';
+          const imageURL = entry.photo.media_type === "video" ? entry.photo.thumbnail_url : (entry.photo.hdurl || entry.photo.url);
+          if (imageURL) {
+            const image = document.createElement("img");
+            image.src = imageURL;
+            image.alt = "";
+            image.loading = "lazy";
+            image.onerror = () => image.remove();
+            imageFrame.append(image);
+          }
+          const copy = document.createElement("div");
+          copy.className = "saved-copy";
+          const title = document.createElement("h3");
+          title.textContent = entry.photo.title;
+          const date = document.createElement("p");
+          date.textContent = formatDate(entry.photo.date);
+          copy.append(title, date);
+          if (entry.comments.length) {
+            const comments = document.createElement("p");
+            comments.className = "comment-count";
+            comments.textContent = `${entry.comments.length} comment${entry.comments.length === 1 ? "" : "s"}`;
+            copy.append(comments);
+          }
+          card.append(imageFrame, copy);
+          grid.append(card);
+        }
+      }
+
+      function renderComments() {
+        const photo = state.detailPhoto || state.photo;
+        if (!photo) return;
+        const entry = entryFor(photo);
+        $("modal-subtitle").textContent = photo.title;
+        const list = $("comment-list");
+        list.replaceChildren();
+        if (!entry.comments.length) {
+          const empty = document.createElement("div");
+          empty.className = "comment-empty";
+          empty.innerHTML = '<div class="empty-icon">☷</div><h2>Start the conversation</h2><p>Add a thought about today’s discovery.</p>';
+          list.append(empty);
+          return;
+        }
+        for (const comment of entry.comments) {
+          const item = document.createElement("div");
+          item.className = "comment";
+          const text = document.createElement("div");
+          text.textContent = comment.text;
+          const time = document.createElement("time");
+          time.dateTime = comment.createdAt;
+          time.textContent = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(comment.createdAt));
+          item.append(text, time);
+          list.append(item);
+        }
+      }
+
+      $("today-tab").addEventListener("click", () => selectView("today"));
+      $("saved-tab").addEventListener("click", () => selectView("saved"));
+      $("open-detail").addEventListener("click", () => {
+        if (state.photo) openDetail(state.photo);
+      });
+      $("discover-link").addEventListener("click", () => {
+        if (state.photo) openDetail(state.photo);
+      });
+      $("back-button").addEventListener("click", returnToTab);
+      $("retry").addEventListener("click", loadToday);
+      $("detail-favorite-button").addEventListener("click", () => {
+        const photo = state.detailPhoto;
+        if (!photo) return;
+        const entry = entryFor(photo);
+        entry.favorite = !entry.favorite;
+        savePhotoRecord(photo, entry);
+        updateActions();
+        if (state.view === "saved") renderSaved();
+      });
+      $("detail-comments-button").addEventListener("click", () => {
+        renderComments();
+        $("comments-modal").hidden = false;
+        $("comment-input").focus();
+      });
+      $("close-modal").addEventListener("click", () => { $("comments-modal").hidden = true; });
+      $("comments-modal").addEventListener("click", (event) => {
+        if (event.target === $("comments-modal")) $("comments-modal").hidden = true;
+      });
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") $("comments-modal").hidden = true;
+      });
+      $("comment-form").addEventListener("submit", (event) => {
+        event.preventDefault();
+        const photo = state.detailPhoto;
+        if (!photo) return;
+        const text = $("comment-input").value.trim();
+        if (!text) return;
+        const entry = entryFor(photo);
+        entry.comments.push({ text, createdAt: new Date().toISOString() });
+        if (!savePhotoRecord(photo, entry)) return;
+        $("comment-input").value = "";
+        $("comment-post").disabled = true;
+        renderComments();
+        updateActions();
+      });
+      $("comment-input").addEventListener("input", (event) => {
+        $("comment-post").disabled = !event.currentTarget.value.trim();
+      });
+
+      readLibrary();
+      updateSavedCount();
+      loadToday();
+    })();
+  </script>
+</body>
+</html>
