@@ -4,70 +4,71 @@ struct TodayView: View {
     @Environment(TodayViewModel.self) private var viewModel
 
     var body: some View {
-        Group {
-            if let photo = viewModel.photo {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 24) {
-                        if let errorMessage = viewModel.errorMessage {
-                            Label(errorMessage, systemImage: "exclamationmark.triangle")
-                                .font(.subheadline)
-                                .foregroundStyle(.orange)
-                                .padding(.horizontal)
-                        }
-                        header
-                        NavigationLink {
-                            PhotoDetailView(photo: photo)
-                        } label: {
-                            PhotoPreview(photo: photo)
-                        }
-                        .buttonStyle(.plain)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 24) {
+                header
+                dateSelector
 
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("TODAY'S UNIVERSE")
-                                .font(.caption.weight(.bold))
-                                .tracking(1.5)
-                                .foregroundStyle(.orange)
-                            Text(photo.title)
-                                .font(.title2.weight(.bold))
-                            Text(photo.explanation)
-                                .font(.body)
-                                .foregroundStyle(.secondary)
-                                .lineLimit(4)
-                            NavigationLink("Discover the story") {
-                                PhotoDetailView(photo: photo)
-                            }
-                            .font(.subheadline.weight(.semibold))
-                            .tint(.orange)
-                            .padding(.top, 4)
+                if let photo = viewModel.photo {
+                    NavigationLink {
+                        PhotoDetailView(photo: photo)
+                    } label: {
+                        PhotoPreview(photo: photo)
+                    }
+                    .buttonStyle(.plain)
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(viewModel.isShowingToday ? "TODAY'S UNIVERSE" : "ON THIS DAY")
+                            .font(.caption.weight(.bold))
+                            .tracking(1.5)
+                            .foregroundStyle(.orange)
+                        Text(photo.title)
+                            .font(.title2.weight(.bold))
+                        Text(photo.plainExplanation)
+                            .font(.body)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(4)
+                        NavigationLink("Discover the story") {
+                            PhotoDetailView(photo: photo)
                         }
-                        .padding(.horizontal)
+                        .font(.subheadline.weight(.semibold))
+                        .tint(.orange)
+                        .padding(.top, 4)
                     }
-                    .padding(.bottom, 28)
-                }
-                .refreshable {
-                    await viewModel.loadToday(forceRefresh: true)
-                }
-            } else if viewModel.isLoading {
-                ProgressView("Finding today's good thing…")
-                    .tint(.orange)
-            } else {
-                ContentUnavailableView {
-                    Label("The sky is quiet", systemImage: "moon.stars")
-                } description: {
-                    Text(viewModel.errorMessage ?? "Today's photo is not available right now.")
-                } actions: {
-                    Button("Try again") {
-                        Task { await viewModel.loadToday(forceRefresh: true) }
+                    .padding(.horizontal)
+                } else if viewModel.isLoading {
+                    HStack {
+                        Spacer()
+                        ProgressView {
+                            Text("Finding the photo for \(formattedAPODDate(viewModel.selectedDate))…")
+                        }
+                        .tint(.orange)
+                        Spacer()
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.orange)
+                    .padding(.top, 36)
+                } else {
+                    ContentUnavailableView {
+                        Label("The sky is quiet", systemImage: "moon.stars")
+                    } description: {
+                        Text(viewModel.errorMessage ?? "No astronomy photo is available for this date.")
+                    } actions: {
+                        Button("Try again") {
+                            Task { await viewModel.loadSelectedDate(forceRefresh: true) }
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.orange)
+                    }
                 }
             }
+            .padding(.bottom, 28)
+        }
+        .refreshable {
+            await viewModel.loadSelectedDate(forceRefresh: true)
         }
         .background(Color(red: 0.035, green: 0.045, blue: 0.09))
         .navigationBarHidden(true)
         .task {
-            await viewModel.loadToday()
+            await viewModel.loadSelectedDate()
         }
     }
 
@@ -77,12 +78,59 @@ struct TodayView: View {
                 .font(.caption.weight(.bold))
                 .tracking(2.5)
                 .foregroundStyle(.orange)
-            Text("A little wonder, every day.")
-                .font(.title3.weight(.medium))
-                .foregroundStyle(.white.opacity(0.82))
+            TimelineView(.periodic(from: .now, by: 60)) { context in
+                Text(formattedAPODDate(context.date))
+                    .font(.title3.weight(.medium))
+                    .foregroundStyle(.white.opacity(0.82))
+            }
         }
         .padding(.horizontal)
         .padding(.top, 16)
+    }
+
+    private var dateSelector: some View {
+        HStack(spacing: 12) {
+            DatePicker(
+                "Photo date",
+                selection: Binding(
+                    get: { viewModel.selectedDate },
+                    set: { viewModel.selectDate($0) }
+                ),
+                in: viewModel.earliestAPODDate...Date.now,
+                displayedComponents: .date
+            )
+            .datePickerStyle(.compact)
+            .tint(.orange)
+            .environment(\.timeZone, TimeZone(secondsFromGMT: 0) ?? .current)
+            .environment(\.calendar, viewModel.apodCalendar)
+            .disabled(viewModel.isLoading)
+
+            Spacer(minLength: 0)
+
+            Button {
+                Task { await viewModel.loadSelectedDate(forceRefresh: true) }
+            } label: {
+                if viewModel.isLoading {
+                    ProgressView()
+                        .tint(.white)
+                } else {
+                    Text("Show photo")
+                }
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(.orange)
+            .disabled(viewModel.isLoading)
+        }
+        .font(.subheadline)
+        .padding(.horizontal)
+    }
+
+    private func formattedAPODDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.timeZone = TimeZone(secondsFromGMT: 0) ?? .current
+        formatter.dateStyle = .full
+        formatter.timeStyle = .none
+        return formatter.string(from: date)
     }
 }
 
@@ -91,25 +139,34 @@ struct PhotoPreview: View {
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
-            AsyncImage(url: photo.imageURL) { phase in
-                switch phase {
-                case .success(let image):
-                    image
-                        .resizable()
-                        .scaledToFill()
-                case .failure:
-                    imagePlaceholder
-                        .overlay {
-                            Image(systemName: "photo")
-                                .font(.largeTitle)
-                                .foregroundStyle(.white.opacity(0.65))
-                        }
-                case .empty:
-                    imagePlaceholder
-                        .overlay { ProgressView().tint(.white) }
-                @unknown default:
-                    imagePlaceholder
+            if photo.mediaType == .image {
+                AsyncImage(url: photo.imageURL) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .scaledToFill()
+                    case .failure:
+                        imagePlaceholder
+                            .overlay {
+                                Image(systemName: "photo")
+                                    .font(.largeTitle)
+                                    .foregroundStyle(.white.opacity(0.65))
+                            }
+                    case .empty:
+                        imagePlaceholder
+                            .overlay { ProgressView().tint(.white) }
+                    @unknown default:
+                        imagePlaceholder
+                    }
                 }
+            } else {
+                imagePlaceholder
+                    .overlay {
+                        Label("Open APOD media", systemImage: "play.fill")
+                            .font(.headline)
+                            .foregroundStyle(.white.opacity(0.85))
+                    }
             }
             .frame(height: 340)
             .frame(maxWidth: .infinity)

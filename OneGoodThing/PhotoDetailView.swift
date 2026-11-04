@@ -32,7 +32,10 @@ struct PhotoDetailView: View {
                     } label: {
                         unavailableImage
                             .overlay {
-                                Label("Watch today's astronomy video", systemImage: "play.fill")
+                                Label(
+                                    photo.mediaType == .iframe ? "Open APOD media" : "Watch astronomy video",
+                                    systemImage: "play.fill"
+                                )
                                     .font(.headline)
                                     .foregroundStyle(.white)
                             }
@@ -55,7 +58,7 @@ struct PhotoDetailView: View {
                     }
                 }
 
-                Text(photo.explanation)
+                Text(photo.plainExplanation)
                     .font(.body)
                     .foregroundStyle(.white.opacity(0.88))
                     .lineSpacing(5)

@@ -1,0 +1,3 @@
+window.ONE_GOOD_THING_CONFIG = {
+  nasaApiKey: "PASTE_YOUR_NASA_API_KEY_HERE"
+};

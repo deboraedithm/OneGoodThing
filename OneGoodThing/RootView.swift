@@ -2,6 +2,8 @@ import SwiftUI
 
 struct RootView: View {
     @Environment(PhotoLibrary.self) private var photoLibrary
+    @Environment(TodayViewModel.self) private var todayViewModel
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         TabView {
@@ -20,6 +22,18 @@ struct RootView: View {
             }
         }
         .tint(.orange)
+        .task {
+            while !Task.isCancelled {
+                guard await todayViewModel.waitUntilNextAPODDay() else { return }
+                await todayViewModel.loadToday(forceRefresh: true)
+            }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            guard phase == .active else { return }
+            Task {
+                await todayViewModel.refreshAfterBecomingActive()
+            }
+        }
         .alert(
             "Couldn't update your library",
             isPresented: Binding(

@@ -11,10 +11,23 @@ struct AstronomyPhoto: Decodable, Identifiable, Equatable, Sendable {
 
     var id: String { date }
     var imageURL: URL { hdURL ?? url }
+    var plainExplanation: String {
+        guard let data = explanation.data(using: .utf8) else { return explanation }
+        let options: [NSAttributedString.DocumentReadingOptionKey: Any] = [
+            .documentType: .html,
+            .characterEncoding: String.Encoding.utf8.rawValue
+        ]
+        return (try? NSAttributedString(
+            data: data,
+            options: options,
+            documentAttributes: nil
+        ).string) ?? explanation
+    }
 
     enum MediaType: String, Decodable, Sendable {
         case image
         case video
+        case iframe
         case other
 
         init(from decoder: Decoder) throws {

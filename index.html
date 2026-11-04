@@ -163,6 +163,12 @@
     .intro { padding: 13px 16px 0; }
     .eyebrow { font-size: 11px; letter-spacing: 2px; }
     .intro h1 { margin: 4px 0 0; font-size: 18px; font-weight: 500; letter-spacing: -.3px; line-height: 1.35; color: rgba(255,255,255,.82); }
+    .today-date { margin-top: 5px; color: var(--muted); font-size: 12px; }
+    .date-search { display: flex; align-items: center; gap: 9px; padding: 8px 16px 0; }
+    .date-search label { color: var(--muted); font-size: 12px; }
+    .date-search input { min-width: 0; padding: 7px 9px; border: 1px solid var(--line); border-radius: 9px; color: white; color-scheme: dark; background: rgba(255,255,255,.06); font-size: 12px; }
+    .date-search button { min-height: 34px; margin-left: auto; padding: 0 11px; border: 0; border-radius: 9px; color: #171018; background: var(--orange); font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+    .date-search button:disabled, .date-search input:disabled { opacity: .55; cursor: default; }
     .subtitle { display: none; }
     .layout { display: flex; flex-direction: column; gap: 0; padding-bottom: 24px; }
     .photo-card { display: block; width: calc(100% - 32px); height: 340px; min-height: 340px; margin: 24px 16px 0; padding: 0; appearance: none; text-align: left; cursor: pointer; border-radius: 22px; background: linear-gradient(140deg, #24284d, #121423 65%, #171521); border: 1px solid rgba(255,255,255,.1); box-shadow: none; }
@@ -272,8 +278,14 @@
         <div class="intro">
           <div class="eyebrow">ONE GOOD THING</div>
           <h1>A little wonder, every day.</h1>
+          <p id="today-date" class="today-date"></p>
         </div>
-        <div id="loading" class="loading"><span class="spinner" aria-hidden="true"></span><span>Finding today's good thing…</span></div>
+        <form id="date-search" class="date-search">
+          <label for="photo-date-input">Photo date</label>
+          <input id="photo-date-input" type="date" min="1995-06-16" required>
+          <button id="load-date-button" type="submit">Show photo</button>
+        </form>
+        <div id="loading" class="loading"><span class="spinner" aria-hidden="true"></span><span id="loading-message">Finding today's good thing…</span></div>
         <div id="error" class="error" hidden>
           <div class="eyebrow">A little pause in the universe</div>
           <p id="error-message">We couldn't reach NASA right now.</p>
@@ -286,7 +298,7 @@
             <div class="image-caption"><time id="photo-date"></time><strong id="photo-card-title"></strong></div>
           </button>
           <div class="detail">
-            <div class="eyebrow">TODAY'S UNIVERSE</div>
+            <div id="universe-heading" class="eyebrow">TODAY'S UNIVERSE</div>
             <h2 id="photo-title"></h2>
             <p id="photo-description" class="description"></p>
             <button id="discover-link" class="discover-link" type="button">Discover the story</button>
@@ -350,12 +362,13 @@
     </div>
   </div>
 
+  <script src="config.js" onerror="this.remove()"></script>
   <script>
     (() => {
-      const API_KEY = "DEMO_KEY";
+      const API_KEY = window.ONE_GOOD_THING_CONFIG?.nasaApiKey?.trim() || "DEMO_KEY";
       const STORAGE_KEY = "one-good-thing.browser-library.v1";
       const $ = (id) => document.getElementById(id);
-      const state = { photo: null, detailPhoto: null, photos: {}, view: "today", toastTimer: null };
+      const state = { photo: null, detailPhoto: null, photos: {}, view: "today", toastTimer: null, lastRequestedDate: null, dayTimer: null, isLoading: false };
       const icon = {
         heart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 8.7c0 4.4-8.8 10-8.8 10s-8.8-5.6-8.8-10A4.7 4.7 0 0 1 12 6.2a4.7 4.7 0 0 1 8.8 2.5Z"/></svg>',
         heartFill: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.8 8.7c0 4.4-8.8 10-8.8 10s-8.8-5.6-8.8-10A4.7 4.7 0 0 1 12 6.2a4.7 4.7 0 0 1 8.8 2.5Z"/></svg>',
@@ -402,6 +415,35 @@
         return new Intl.DateTimeFormat(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric" }).format(date);
       }
 
+      function currentAPODDate() {
+        const now = new Date();
+        const month = String(now.getUTCMonth() + 1).padStart(2, "0");
+        const day = String(now.getUTCDate()).padStart(2, "0");
+        return `${now.getUTCFullYear()}-${month}-${day}`;
+      }
+
+      function updateTodayDate() {
+        $("today-date").textContent = new Intl.DateTimeFormat(undefined, {
+          weekday: "long", month: "long", day: "numeric", year: "numeric", timeZone: "UTC"
+        }).format(new Date());
+        $("photo-date-input").max = currentAPODDate();
+        if (!$("photo-date-input").value) $("photo-date-input").value = currentAPODDate();
+      }
+
+      function scheduleNextAPODDay() {
+        clearTimeout(state.dayTimer);
+        const now = new Date();
+        const nextUTCDate = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1);
+        const delay = Math.max(nextUTCDate - now.getTime() + 1000, 1000);
+        state.dayTimer = setTimeout(() => {
+          updateTodayDate();
+          $("photo-date-input").value = currentAPODDate();
+          state.lastRequestedDate = null;
+          loadToday();
+          scheduleNextAPODDay();
+        }, delay);
+      }
+
       function setError(message) {
         $("loading").hidden = true;
         $("photo-layout").hidden = true;
@@ -417,9 +459,11 @@
         $("photo-layout").hidden = false;
         $("photo-title").textContent = photo.title;
         $("photo-card-title").textContent = photo.title;
+        $("universe-heading").textContent = photo.date === currentAPODDate() ? "TODAY'S UNIVERSE" : "ON THIS DAY";
         $("photo-date").textContent = photo.date;
         $("photo-date").dateTime = photo.date;
-        $("photo-description").textContent = photo.explanation;
+        $("photo-description").textContent = new DOMParser()
+          .parseFromString(photo.explanation, "text/html").body.textContent || "";
 
         const imageURL = photo.media_type === "video" ? photo.thumbnail_url : (photo.hdurl || photo.url);
         const image = $("photo-image");
@@ -453,6 +497,9 @@
         const video = $("detail-video");
         const imageURL = photo.media_type === "video" ? photo.thumbnail_url : (photo.hdurl || photo.url);
         video.hidden = photo.media_type === "image";
+        video.textContent = photo.media_type === "iframe"
+          ? "▶  Open APOD media"
+          : "▶  Watch astronomy video";
         image.hidden = photo.media_type !== "image";
         if (photo.media_type === "image") {
           image.src = imageURL;
@@ -464,7 +511,8 @@
 
         $("detail-date").textContent = photo.date;
         $("detail-title").textContent = photo.title;
-        $("detail-explanation").textContent = photo.explanation;
+        $("detail-explanation").textContent = new DOMParser()
+          .parseFromString(photo.explanation, "text/html").body.textContent || "";
         const credit = photo.copyright ? `Image: ${photo.copyright.trim()}` : "";
         $("detail-credit").textContent = credit;
         $("detail-credit").hidden = !credit;
@@ -476,57 +524,74 @@
         selectView(state.view);
       }
 
-      async function loadArchiveFeature() {
-        const url = new URL("https://images-api.nasa.gov/search");
-        url.search = new URLSearchParams({ q: "nebula", media_type: "image", page_size: "5" });
-        const response = await fetch(url);
-        if (!response.ok) throw new Error("NASA's image archive is unavailable.");
-        const result = await response.json();
-        const item = result.collection?.items?.find((candidate) =>
-          candidate.data?.[0]?.title
-          && candidate.data[0].title !== "NASA Science"
-          && candidate.links?.some((link) => link.render === "image")
-        );
-        if (!item) throw new Error("NASA's image archive did not return a photo.");
-        const metadata = item.data[0];
-        const imageURL = item.links.find((link) => link.render === "image").href;
-        return {
-          date: metadata.date_created?.slice(0, 10) || new Date().toISOString().slice(0, 10),
-          title: metadata.title,
-          explanation: metadata.description_508 || metadata.description || "A glimpse into our universe, from NASA's image archive.",
-          url: imageURL,
-          hdurl: imageURL,
-          media_type: "image",
-          copyright: metadata.secondary_creator || metadata.center || "NASA",
-          source: "archive"
-        };
-      }
-
-      async function loadToday() {
+      async function loadToday(date = currentAPODDate()) {
+        if (state.lastRequestedDate === date) return;
+        if (state.isLoading) return;
+        const isToday = date === currentAPODDate();
+        state.isLoading = true;
+        state.lastRequestedDate = date;
+        state.photo = null;
+        state.detailPhoto = null;
         $("error").hidden = true;
         $("photo-layout").hidden = true;
         $("loading").hidden = false;
+        $("photo-date-input").disabled = true;
+        $("load-date-button").disabled = true;
+        $("loading-message").textContent = isToday
+          ? "Finding today's good thing…"
+          : `Finding the photo for ${formatDate(date)}…`;
         try {
-          const date = new Intl.DateTimeFormat("en-CA", {
-            year: "numeric", month: "2-digit", day: "2-digit", timeZone: "UTC"
-          }).format(new Date());
-          const url = new URL("https://api.nasa.gov/planetary/apod");
-          url.search = new URLSearchParams({ api_key: API_KEY, date, thumbs: "true" });
-          const response = await fetch(url);
-          let photo = null;
-          if (response.ok) {
-            const result = await response.json();
-            if (result.title && result.title !== "NASA Science" && result.date && result.explanation && result.url
-              && !result.url.includes("/nasa-logo")) {
-              photo = result;
+          const targetTime = Date.parse(`${date}T00:00:00Z`);
+          const todayTime = Date.parse(`${currentAPODDate()}T00:00:00Z`);
+          const daysBack = Math.max(0, Math.floor((todayTime - targetTime) / 86400000));
+          let page = Math.floor(daysBack / 25) + 1;
+          let photo;
+          while (!photo) {
+            const url = new URL("https://science.nasa.gov/wp-json/wp/v2/apod-basic/");
+            url.search = new URLSearchParams({ api_key: API_KEY, page: String(page) });
+            const response = await fetch(url);
+            if (!response.ok) {
+              throw new Error(response.status === 429
+                ? `NASA's API request limit was reached, so the APOD for ${formatDate(date)} isn't available right now.`
+                : `NASA's photo service returned an error (${response.status}).`);
+            }
+            const responseData = await response.json();
+            const photos = Array.isArray(responseData) ? responseData : [responseData];
+            photo = photos.find((entry) => entry.date === date);
+            if (photo) break;
+
+            const newestDate = photos[0]?.date;
+            const oldestDate = photos[photos.length - 1]?.date;
+            if (!newestDate || !oldestDate) break;
+            if (date > newestDate) {
+              page = Math.max(1, page - 1);
+            } else if (date < oldestDate && photos.length === 25) {
+              page += 1;
+            } else {
+              break;
             }
           }
-          if (!photo) photo = await loadArchiveFeature();
+          if (!photo || !photo.title || photo.date !== date
+            || !photo.explanation || !photo.url || photo.url.toLowerCase().includes("nasa-logo")
+            || !["image", "video", "iframe"].includes(photo.media_type)) {
+            throw new Error(`NASA hasn't provided a valid Astronomy Picture of the Day for ${formatDate(date)}.`);
+          }
+          if (isToday && date !== currentAPODDate()) {
+            state.lastRequestedDate = null;
+            updateTodayDate();
+            $("photo-date-input").value = currentAPODDate();
+            throw new Error("The date changed while loading. Please try again for today's photo.");
+          }
           renderPhoto(photo);
         } catch (error) {
+          state.lastRequestedDate = null;
           setError(error instanceof TypeError
             ? "We couldn't connect to NASA. Check your internet connection and try again."
-            : `${error.message || "We couldn't load today's photo."} Try again in a little while.`);
+            : `${error.message || "We couldn't load today's photo"} Try again in a little while.`);
+        } finally {
+          state.isLoading = false;
+          $("photo-date-input").disabled = false;
+          $("load-date-button").disabled = false;
         }
       }
 
@@ -659,7 +724,25 @@
         if (state.photo) openDetail(state.photo);
       });
       $("back-button").addEventListener("click", returnToTab);
-      $("retry").addEventListener("click", loadToday);
+      $("retry").addEventListener("click", () => {
+        state.lastRequestedDate = null;
+        loadToday($("photo-date-input").value || currentAPODDate());
+      });
+      $("date-search").addEventListener("submit", (event) => {
+        event.preventDefault();
+        const date = $("photo-date-input").value;
+        if (!date) {
+          $("photo-date-input").focus();
+          return;
+        }
+        if (state.isLoading) return;
+        if (date < "1995-06-16" || date > currentAPODDate()) {
+          showToast("Choose a date between June 16, 1995 and today.");
+          return;
+        }
+        state.lastRequestedDate = null;
+        loadToday(date);
+      });
       $("detail-favorite-button").addEventListener("click", () => {
         const photo = state.detailPhoto;
         if (!photo) return;
@@ -681,6 +764,13 @@
       document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") $("comments-modal").hidden = true;
       });
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible"
+          && (state.lastRequestedDate !== currentAPODDate() || $("error").hidden === false)) {
+          state.lastRequestedDate = null;
+          loadToday();
+        }
+      });
       $("comment-form").addEventListener("submit", (event) => {
         event.preventDefault();
         const photo = state.detailPhoto;
@@ -700,6 +790,8 @@
       });
 
       readLibrary();
+      updateTodayDate();
+      scheduleNextAPODDay();
       updateSavedCount();
       loadToday();
     })();
